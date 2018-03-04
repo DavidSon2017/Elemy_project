@@ -10,7 +10,7 @@
 #define DB_HOST "127.0.0.1"
 #define DB_USER "root"
 #define DB_PASS "1234"
-#define DB_NAME "clus" //Å×ÀÌºí¸í : clus.datas , clus.result
+#define DB_NAME "clus" //í…Œì´ë¸”ëª… : clus.datas , clus.result
 #define RoundOff(x, dig) (floor((x) * pow(10,dig) + 0.5) / pow(10,dig))
 
 typedef struct data {
@@ -33,32 +33,32 @@ data * datas;
 int dc, kc;
 
 void connectDB();
-void clearResult();	// ÀÌÀü µ¥ÀÌÅÍ »èÁ¦
-void loadData(int flag);	// ÆòÀÏ È¤Àº ÁÖ¸»µ¥ÀÌÅÍ¸¦ ÀĞ¾î¿È
+void clearResult();		// ì´ì „ ë°ì´í„° ì‚­ì œ
+void loadData(int flag);	// í‰ì¼ í˜¹ì€ ì£¼ë§ë°ì´í„°ë¥¼ ì½ì–´ì˜´
 void clustering();
-void uploadData(int flag);	// °á°ú Å×ÀÌºí¿¡ µ¥ÀÌÅÍ »ğÀÔ
-char* chartime(double t);	// ½Ã, ºĞ, ÃÊ¸¦ ¹®ÀÚ·Î È¯»ê
-int inttime(char * str);	// ½Ã, ºĞ, ÃÊ¸¦ Á¤¼ö·Î È¯»ê
+void uploadData(int flag);	// ê²°ê³¼ í…Œì´ë¸”ì— ë°ì´í„° ì‚½ì…
+char* chartime(double t);	// ì‹œ, ë¶„, ì´ˆë¥¼ ë¬¸ìë¡œ í™˜ì‚°
+int inttime(char * str);	// ì‹œ, ë¶„, ì´ˆë¥¼ ì •ìˆ˜ë¡œ í™˜ì‚°
 
 int main(void)
 {
-	connectDB(); //DB¿¡ Á¢¼Ó
+	connectDB(); //DBì— ì ‘ì†
 
-				 //clearResult(); //ÀÌÀüÀÇ clustering result Å×ÀÌºí »èÁ¦
+	//clearResult(); //ì´ì „ì˜ clustering result í…Œì´ë¸” ì‚­ì œ
 
-	loadData(0); //ÆòÀÏµ¥ÀÌÅÍ ÀĞ¾î¿Í
-	clustering(); //Å¬·¯½ºÅÍ¸µ ½ÃÇà
-	uploadData(0); //ÆòÀÏ°á°ú ÀúÀå
+	loadData(0); //í‰ì¼ë°ì´í„° ì½ì–´ì™€
+	clustering(); //í´ëŸ¬ìŠ¤í„°ë§ ì‹œí–‰
+	uploadData(0); //í‰ì¼ê²°ê³¼ ì €ì¥
 
 	free(datas);
 
-	//loadData(1); //ÁÖ¸»µ¥ÀÌÅÍ ÀĞ¾î¿Í
-	//clustering(); //Å¬·¯½ºÅÍ¸µ ½ÃÇà
-	//uploadData(1); //ÁÖ¸»°á°ú ÀúÀå
+	//loadData(1); //ì£¼ë§ë°ì´í„° ì½ì–´ì™€
+	//clustering(); //í´ëŸ¬ìŠ¤í„°ë§ ì‹œí–‰
+	//uploadData(1); //ì£¼ë§ê²°ê³¼ ì €ì¥
 
 	//free(datas);
 
-	mysql_close(connection); //DB Á¢¼Ó Á¾·á
+	mysql_close(connection); //DB ì ‘ì† ì¢…ë£Œ
 }
 
 void connectDB() {
@@ -74,24 +74,23 @@ void connectDB() {
 void clearResult() {
 	char query[256];
 
-	//ÀÌÀü µ¥ÀÌÅÍ »èÁ¦ ÈÄ
+	//ì´ì „ ë°ì´í„° ì‚­ì œ í›„
 	sprintf(query, "truncate result");
 	query_stat = mysql_query(connection, query);
 	if (query_stat != 0) {
 		fprintf(stderr, "Mysql query error : %s", mysql_error(&conn));
 		return 1;
 	}
-
 }
 
-//ÆòÀÏµ¥ÀÌÅÍÀĞ¾î¿À±â(0), ÁÖ¸»µ¥ÀÌÅÍÀĞ¾î¿À±â(1)
+//í‰ì¼ë°ì´í„°ì½ì–´ì˜¤ê¸°(0), ì£¼ë§ë°ì´í„°ì½ì–´ì˜¤ê¸°(1)
 void loadData(int flag) {
 	char query[255];
 	char buf[255];
 
-	int c_floor; //È£ÃâµÈ Ãş
-	int c_time;  //È£ÃâµÈ ½Ã°£
-	int is_weekend = flag; //ÆòÀÏ,ÁÖ¸» ¿©ºÎ
+	int c_floor; //í˜¸ì¶œëœ ì¸µ
+	int c_time;  //í˜¸ì¶œëœ ì‹œê°„
+	int is_weekend = flag; //í‰ì¼,ì£¼ë§ ì—¬ë¶€
 
 	time_t timer = time(NULL);
 	struct tm *t = localtime(&timer);
@@ -113,14 +112,14 @@ void loadData(int flag) {
 	mysql_free_result(sql_result);
 
 	kc = ceil(sqrt(dc / 2));
-	printf("µ¥ÀÌÅÍ°¹¼ö : %d -> ±ºÁık°¹¼ö : %d\n", dc, kc);
+	printf("ë°ì´í„°ê°¯ìˆ˜ : %d -> êµ°ì§‘kê°¯ìˆ˜ : %d\n", dc, kc);
 
-	datas = (data*)malloc(sizeof(data)*dc); //µ¥ÀÌÅÍ°¹¼ö¸¸Å­ d ¹è¿­ µ¿ÀûÇÒ´ç
+	datas = (data*)malloc(sizeof(data)*dc); //ë°ì´í„°ê°¯ìˆ˜ë§Œí¼ d ë°°ì—´ ë™ì í• ë‹¹
 
-	//µ¥ÀÌÅÍ¹è¿­¿¡ ÀúÀåÀ» À§ÇÑ ÀÏÁÖÀÏ Àü ¸ğµç µ¥ÀÌÅÍ ºÒ·¯¿À±â. ÁÖ¼® Ç®°í »ç¿ë
+	//ë°ì´í„°ë°°ì—´ì— ì €ì¥ì„ ìœ„í•œ ì¼ì£¼ì¼ ì „ ëª¨ë“  ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸°. ì£¼ì„ í’€ê³  ì‚¬ìš©
 	//sprintf(buf, "select * from datas where '%d-%d-%d'<call_day and call_day<'%d-%d-%d' and is_weekend=%d", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday - 7, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday - 1,is_weekend);
 
-	//ÁÖ¼®
+	//ì£¼ì„
 	sprintf(buf, "select * from datas where is_weekend=%d", is_weekend);
 
 	query_stat = mysql_query(connection, buf);
@@ -139,19 +138,11 @@ void loadData(int flag) {
 	{
 		//printf("%s\t%s\n", sql_row[1], sql_row[2]);
 
-		datas[idx].time = inttime(sql_row[1]); //½Ã°£ ÀúÀå
-		datas[idx].floor = atoi(sql_row[2]); //Ãş ¼ö ÀúÀå
+		datas[idx].time = inttime(sql_row[1]); //ì‹œê°„ ì €ì¥
+		datas[idx].floor = atoi(sql_row[2]); //ì¸µ ìˆ˜ ì €ì¥
 
 		idx++;
 	}
-
-	//printf("±¸Á¶Ã¼¿¡ ÀúÀåÈ®ÀÎ\n");
-	//for (int i=0;i<dc;i++){
-	//	printf("%.2f - %d\n", datas[i].time, datas[i].floor);
-	//}
-	//printf("----------------------------------------------\n");
-
-	//mysql_free_result(sql_result);
 }
 
 int i, j, signal, min_j, same_count;
@@ -163,10 +154,8 @@ double *sum, *count, *result;
 double **distance;
 double tmp_distance, min;
 
-//µ¥ÀÌÅÍ Å¬·¯½ºÅÍ¸µ
 void clustering() {
-	//--------------------------------Å¬·¯½ºÅÍ¸µ ÇÔ¼ö Ãß°¡
-	double *count_Group;   //±ºÁı ±×·ì
+	double *count_Group;   //êµ°ì§‘ ê·¸ë£¹
 	count_Group = (double*)malloc(sizeof(double)*kc);
 
 	k = (data*)malloc(sizeof(data)*kc);
@@ -175,7 +164,7 @@ void clustering() {
 	tmp = (int *)malloc(sizeof(int)*kc);
 	clus = (clusinfo*)malloc(sizeof(clusinfo)*kc);
 
-	// °á°ú°ª °è»êº¯¼ö  
+	// ê²°ê³¼ê°’ ê³„ì‚°ë³€ìˆ˜  
 	sum = (double*)malloc(sizeof(int)*kc);
 	count = (double*)malloc(sizeof(int)*kc);
 	result = (double*)malloc(sizeof(int)*kc);
@@ -187,7 +176,7 @@ void clustering() {
 		sum[i] = 0;
 		count[i] = 0;
 		result[i] = 0;
-	} //ÃÊ±âÈ­
+	} //ì´ˆê¸°í™”
 
 	for (i = 0; i<kc; i++) {
 		distance[i] = (double*)malloc(sizeof(double)*dc);
@@ -195,9 +184,9 @@ void clustering() {
 
 	printf("----------------------------------------\n");
 
-	srand(time(NULL));   //³­¼ö seed°ª »ç¿ë
+	srand(time(NULL));   //ë‚œìˆ˜ seedê°’ ì‚¬ìš©
 
-	printf("---------ÃÊ±â·£´ı°ª-----------\n");
+	printf("---------ì´ˆê¸°ëœë¤ê°’-----------\n");
 	for (int i = 0; i < kc; i++) {
 		tmp[i] = (rand() % dc);
 		for (int j = 0; j < i; j++) {
@@ -208,72 +197,72 @@ void clustering() {
 		}
 	}
 
-	for (int i = 0; i < kc; i++) {   //k°³ °³Ã¼ ÀÓÀÇ ÃßÃâ
+	for (int i = 0; i < kc; i++) {   //kê°œ ê°œì²´ ì„ì˜ ì¶”ì¶œ
 		k[i] = datas[tmp[i]];
 		center[i].floor = datas[tmp[i]].floor;
 		center[i].time = datas[tmp[i]].time;
 
-		printf(" ·£´ıÃßÃâ°ª ) ");
+		printf(" ëœë¤ì¶”ì¶œê°’ ) ");
 		char * str = chartime(center[i].time);
 		//printf("%s\n", str);
 		//printf("%.2lf %d\n", center[i].time, center[i].floor);
 	}
 	printf("------------------------------\n");
 
-	//while Å»ÃâÅ° signal
+	//while íƒˆì¶œí‚¤ signal
 	signal = 1;
 
 	while (signal)
 	{
 
-		for (i = 0; i<kc; i++) {   //Áß½É°ªÀ» 0À¸·Î ÃÊ±âÈ­
+		for (i = 0; i<kc; i++) {   //ì¤‘ì‹¬ê°’ì„ 0ìœ¼ë¡œ ì´ˆê¸°í™”
 			center[i].time = 0;
 			center[i].floor = 0;
 			count_Group[i] = 0;
 		}
 
-		for (i = 0; i<dc; i++) {   //°¢°¢ÀÇ ¸ğµç µ¥ÀÌÅÍ¿¡ ´ëÇÏ¿©
-			for (j = 0; j<kc; j++) {   //±ºÁıÀÇ Áß½É°ú µ¥ÀÌÅÍ¿ÍÀÇ °Å¸® °è»ê
-				tmp_distance = sqrt(pow(k[j].time - datas[i].time, 2));   //°Å¸® °è»ê ½Ä
-				distance[j][i] = tmp_distance;   //°Å¸®°ª ÃÖ½ÅÈ­
-												 //printf(" %d °Å¸®: %.2f \n",i,distance[j][i]);
+		for (i = 0; i<dc; i++) {   //ê°ê°ì˜ ëª¨ë“  ë°ì´í„°ì— ëŒ€í•˜ì—¬
+			for (j = 0; j<kc; j++) {   //êµ°ì§‘ì˜ ì¤‘ì‹¬ê³¼ ë°ì´í„°ì™€ì˜ ê±°ë¦¬ ê³„ì‚°
+				tmp_distance = sqrt(pow(k[j].time - datas[i].time, 2));   //ê±°ë¦¬ ê³„ì‚° ì‹
+				distance[j][i] = tmp_distance;   //ê±°ë¦¬ê°’ ìµœì‹ í™”
+								 //printf(" %d ê±°ë¦¬: %.2f \n",i,distance[j][i]);
 			}
 		}
 
-		for (i = 0; i<dc; i++) {   //°¢°¢ÀÇ ¸ğµç µ¥ÀÌÅÍ¿¡ ´ëÇÏ¿©
-			min = distance[0][i];  //ÇÏ³ªÀÇ µ¥ÀÌÅÍ¿Í Ã¹¹øÂ° ±ºÁı°úÀÇ °Å¸®¸¦ ÃÖ¼ÒÈ­
-			min_j = 0; //µ¥ÀÌÅÍ°¡ ¼ÓÇÑ ±ºÁı ¼³Á¤
-			for (j = 1; j<kc; j++) {  //µÎ¹øÂ° ±ºÁı¿¡ ´ëÇÏ¿©
-				if (min > distance[j][i]) {  //Ã¹¹øÂ° ±ºÁı°ú µÎ¹øÂ° ±ºÁı°£ÀÇ °Å¸® ºñ±³
-					min = distance[j][i];  //µÎ¹øÂ° ±ºÁıÀÌ ´õ °¡±õ´Ù¸é ÃÖ¼Ò°ª º¯°æ
-					min_j = j;  //µ¥ÀÌÅÍ¸¦ µÎ¹øÂ° ±ºÁıÀ¸·Î ¼³Á¤
+		for (i = 0; i<dc; i++) {   			//ê°ê°ì˜ ëª¨ë“  ë°ì´í„°ì— ëŒ€í•˜ì—¬
+			min = distance[0][i];  			//í•˜ë‚˜ì˜ ë°ì´í„°ì™€ ì²«ë²ˆì§¸ êµ°ì§‘ê³¼ì˜ ê±°ë¦¬ë¥¼ ìµœì†Œí™”
+			min_j = 0; 				//ë°ì´í„°ê°€ ì†í•œ êµ°ì§‘ ì„¤ì •
+			for (j = 1; j<kc; j++) {  		//ë‘ë²ˆì§¸ êµ°ì§‘ì— ëŒ€í•˜ì—¬
+				if (min > distance[j][i]) {  	//ì²«ë²ˆì§¸ êµ°ì§‘ê³¼ ë‘ë²ˆì§¸ êµ°ì§‘ê°„ì˜ ê±°ë¦¬ ë¹„êµ
+					min = distance[j][i];  	//ë‘ë²ˆì§¸ êµ°ì§‘ì´ ë” ê°€ê¹ë‹¤ë©´ ìµœì†Œê°’ ë³€ê²½
+					min_j = j;  		//ë°ì´í„°ë¥¼ ë‘ë²ˆì§¸ êµ°ì§‘ìœ¼ë¡œ ì„¤ì •
 				}
 			}
 
-			center[min_j].time = center[min_j].time + datas[i].time;  //½Ã°£ Áß½É°ª ´©Àû
-			count_Group[min_j]++;  //±ºÁı¾È¿¡ µé¾îÀÖ´Â µ¥ÀÌÅÍ °¹¼ö Áõ°¡
-								   //printf(" %d  %.2f \n",center[min_j].floor,center[min_j].time);
+			center[min_j].time = center[min_j].time + datas[i].time;  //ì‹œê°„ ì¤‘ì‹¬ê°’ ëˆ„ì 
+			count_Group[min_j]++; 	//êµ°ì§‘ì•ˆì— ë“¤ì–´ìˆëŠ” ë°ì´í„° ê°¯ìˆ˜ ì¦ê°€
+						//printf(" %d  %.2f \n",center[min_j].floor,center[min_j].time);
 		}
-		same_count = 0; //¼Ò¼Ó±ºÁıÀÇ º¯È­¸¦ ¾Ë±âÀ§ÇÑ º¯¼ö ¼±¾ğ
+		same_count = 0; //ì†Œì†êµ°ì§‘ì˜ ë³€í™”ë¥¼ ì•Œê¸°ìœ„í•œ ë³€ìˆ˜ ì„ ì–¸
 		printf("--------------------\n");
 		for (i = 0; i<kc; i++) {
-			if (count_Group[i] != 0) { //±ºÁı¾ÈÀÇ µ¥ÀÌÅÍÀÇ °³¼ö°¡ 0 ÀÌ ¾Æ´Ï¸é
-				if (center[i].time / count_Group[i] == k[i].time) //ÇöÀç °è»êµÈ ±ºÁıº° Áß½É°ªÀÌ ±âÁ¸ÀÇ ±ºÁıº° Áß½É°ª(K¹è¿­)°ú °°´Ù¸é
-					same_count++; //±ºÁıÀÌ ¹Ù²îÁö ¾Ê¾Ò´Ù´Â °ÍÀ» ³ªÅ¸³»´Â º¯¼ö°ª Áõ°¡
+			if (count_Group[i] != 0) { //êµ°ì§‘ì•ˆì˜ ë°ì´í„°ì˜ ê°œìˆ˜ê°€ 0 ì´ ì•„ë‹ˆë©´
+				if (center[i].time / count_Group[i] == k[i].time) //í˜„ì¬ ê³„ì‚°ëœ êµ°ì§‘ë³„ ì¤‘ì‹¬ê°’ì´ ê¸°ì¡´ì˜ êµ°ì§‘ë³„ ì¤‘ì‹¬ê°’(Kë°°ì—´)ê³¼ ê°™ë‹¤ë©´
+					same_count++; //êµ°ì§‘ì´ ë°”ë€Œì§€ ì•Šì•˜ë‹¤ëŠ” ê²ƒì„ ë‚˜íƒ€ë‚´ëŠ” ë³€ìˆ˜ê°’ ì¦ê°€
 				k[i].time = center[i].time / count_Group[i];
 			}
 
-			if (same_count == kc) { //¸ğµç µ¥ÀÌÅÍÀÇ ¼Ò¼Ó±ºÁıÀÇ º¯È­°¡ ¾øÀ¸¸é
-				signal = 0; //¹«ÇÑ·çÇÁ¸¦ ºüÁ®³ª°¨
+			if (same_count == kc) { //ëª¨ë“  ë°ì´í„°ì˜ ì†Œì†êµ°ì§‘ì˜ ë³€í™”ê°€ ì—†ìœ¼ë©´
+				signal = 0; //ë¬´í•œë£¨í”„ë¥¼ ë¹ ì ¸ë‚˜ê°
 			}
 
-			printf(" Áß½É°ª ) ");
+			printf(" ì¤‘ì‹¬ê°’ ) ");
 			char * str = chartime(k[i].time);
 			printf("%s\n", str);
 		}
-	}// ·çÇÁ³¡
+	}// ë£¨í”„ë
 
-	 //°¢ µ¥ÀÌÅÍÀÇ ¼Ò¼Ó±ºÁıÀ» Ãâ·ÂÇÔ
+	 //ê° ë°ì´í„°ì˜ ì†Œì†êµ°ì§‘ì„ ì¶œë ¥í•¨
 	for (i = 0; i<dc; i++) {
 		min = distance[0][i];
 		min_j = 0;
@@ -283,14 +272,13 @@ void clustering() {
 				min_j = j;
 			}
 		}
-		//printf(" %d ", min_j); //¼Ò¼ÓµÈ ±ºÁı(0 or 1) Ãâ·Â
+		//printf(" %d ", min_j); //ì†Œì†ëœ êµ°ì§‘(0 or 1) ì¶œë ¥
 		datas[i].cluster = min_j;
 
 		count[min_j]++;
 		sum[min_j] += datas[i].floor;
 
-
-		//clusinfo ±¸Á¶Ã¼¿¡ cluster¿¡ µû¶ó ½Ã°£ ÃÊ±âÈ­
+		//clusinfo êµ¬ì¡°ì²´ì— clusterì— ë”°ë¼ ì‹œê°„ ì´ˆê¸°í™”
 		if (clus[min_j].min_time > datas[i].time) {
 			clus[min_j].min_time = datas[i].time;
 		}
@@ -298,29 +286,28 @@ void clustering() {
 			clus[min_j].max_time = datas[i].time;
 		}
 	}
-
-	//Ãş Æò±Õ °è»ê
+	//ì¸µ í‰ê·  ê³„ì‚°
 	for (i = 0; i < kc; i++) {
 		result[i] = RoundOff((sum[i] / count[i]), 0);
 		clus[i].avgfloor = result[i];
 	}
 
 	printf("--------------------\n");
-	printf("\n---------------- °á°ú°ª -----------------\n");
+	printf("\n---------------- ê²°ê³¼ê°’ -----------------\n");
 
 	for (i = 0; i<dc; i++) {
-		//printf(" %d¹øÂ° %dÃş %.2fÃÊ  ±ºÁı: %d \n", i + 1, datas[i].floor, datas[i].time, datas[i].cluster);
+		//printf(" %dë²ˆì§¸ %dì¸µ %.2fì´ˆ  êµ°ì§‘: %d \n", i + 1, datas[i].floor, datas[i].time, datas[i].cluster);
 	}
 
 	printf("-----------------------------------------\n");
-	printf("\n------------- ÃÖÁ¾ °á°ú°ª °è»ê ----------\n");
+	printf("\n------------- ìµœì¢… ê²°ê³¼ê°’ ê³„ì‚° ----------\n");
 
 	for (i = 0; i < kc; i++) {
 		char * tmp1, *tmp2;
 		tmp1 = chartime(clus[i].min_time);
 		tmp2 = chartime(clus[i].max_time);
 
-		printf(" [%d±ºÁı] %s ~ %s : %dÃş\n", i, tmp1, tmp2, clus[i].avgfloor);
+		printf(" [%dêµ°ì§‘] %s ~ %s : %dì¸µ\n", i, tmp1, tmp2, clus[i].avgfloor);
 	}
 	printf("-----------------------------------------\n");
 }
@@ -331,7 +318,7 @@ void uploadData(int flag) {
 	//char buf[255];
 
 	for (int i = 0; i < kc; i++) {
-		//Å¬·¯½ºÅÍ¸µ °á°ú Àç»ğÀÔ
+		//í´ëŸ¬ìŠ¤í„°ë§ ê²°ê³¼ ì¬ì‚½ì…
 		sprintf(query, "insert into result values ('%s','%s','%d','%d')", chartime(clus[i].min_time), chartime(clus[i].max_time), clus[i].avgfloor, is_weekend);
 		query_stat = mysql_query(connection, query);
 		if (query_stat != 0) {
@@ -363,13 +350,13 @@ int inttime(char * str) {
 
 	while (tok != NULL) {
 		if (cnt == 1) {
-			time += (atoi(tok) * 3600);//½Ã Ã³¸®
+			time += (atoi(tok) * 3600);//ì‹œ ì²˜ë¦¬
 		}
 		else if (cnt == 2) {
-			time += (atoi(tok) * 60);//ºĞ Ã³¸®
+			time += (atoi(tok) * 60);//ë¶„ ì²˜ë¦¬
 		}
 		else {
-			time += atoi(tok);//ÃÊ Ã³¸®
+			time += atoi(tok);//ì´ˆ ì²˜ë¦¬
 		}
 		tok = strtok(NULL, ":");
 		cnt++;
